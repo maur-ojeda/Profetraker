@@ -73,11 +73,13 @@ export default function DashboardPage() {
             <p className="text-gray-600 mt-2">Profesores</p>
           </Link>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <Link
+            href="/calendario"
+            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition"
+          >
             <p className="text-3xl font-bold text-green-600">📅</p>
             <p className="text-gray-600 mt-2">Calendario</p>
-            <p className="text-xs text-gray-400 mt-1">(próximamente)</p>
-          </div>
+          </Link>
 
           <div className="bg-white rounded-lg shadow p-6">
             <p className="text-3xl font-bold text-yellow-600">🪪</p>
