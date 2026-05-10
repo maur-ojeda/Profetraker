@@ -81,17 +81,17 @@ export default function DashboardPage() {
             <p className="text-gray-600 mt-2">Calendario</p>
           </Link>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <Link href="/calendario" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition">
             <p className="text-3xl font-bold text-yellow-600">🪪</p>
             <p className="text-gray-600 mt-2">Permisos</p>
-            <p className="text-xs text-gray-400 mt-1">(próximamente)</p>
-          </div>
+            <p className="text-xs text-gray-400 mt-1">Ver en calendario</p>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <Link href="/licencias" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition">
             <p className="text-3xl font-bold text-red-600">🏥</p>
             <p className="text-gray-600 mt-2">Licencias</p>
-            <p className="text-xs text-gray-400 mt-1">(próximamente)</p>
-          </div>
+            <p className="text-xs text-gray-400 mt-1">Gestionar licencias</p>
+          </Link>
         </div>
 
         {/* Recent Activity */}
