@@ -119,6 +119,7 @@ export default function DashboardPage() {
             <p className="text-gray-600 mt-2">Hitos PME</p>
             <p className="text-xs text-gray-400 mt-1">(próximamente)</p>
           </div>
+        </div>
 
         {/* Recent Activity */}
         <div className="bg-white rounded-lg shadow p-6">
