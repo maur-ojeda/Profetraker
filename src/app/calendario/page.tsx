@@ -5,12 +5,13 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 interface Evento {
-  profesor_id: string
+  profesor_id: string | null
   profesor_nombre: string
   departamento: string | null
-  tipo: 'licencia' | 'permiso' | 'ausencia_con_aviso' | 'ausencia_sin_aviso'
+  tipo: 'licencia' | 'permiso' | 'ausencia_con_aviso' | 'ausencia_sin_aviso' | 'hito'
   subtipo: string | null
   detalle: string
+  importante?: boolean
 }
 
 interface CalendarioData {
@@ -33,6 +34,7 @@ const TIPO_CONFIG = {
   permiso: { color: 'bg-yellow-500', label: 'Permiso' },
   ausencia_sin_aviso: { color: 'bg-red-500', label: 'Ausencia s/aviso' },
   ausencia_con_aviso: { color: 'bg-gray-400', label: 'Ausencia c/aviso' },
+  hito: { color: 'bg-indigo-500', label: 'Hito PME' },
 }
 
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
@@ -201,6 +203,10 @@ export default function CalendarioPage() {
               <span className="text-gray-600">{config.label}</span>
             </div>
           ))}
+          <div className="flex items-center gap-2 text-sm">
+            <span className="w-3 h-3 rounded-full bg-red-500 border-2 border-red-700"></span>
+            <span className="text-gray-600">⭐ Importante</span>
+          </div>
         </div>
 
         {data?.resumen && (
@@ -245,6 +251,7 @@ export default function CalendarioPage() {
                 if (tipos.includes('ausencia_sin_aviso')) dayBorderColor = 'border-red-400'
                 else if (tipos.includes('licencia')) dayBorderColor = 'border-green-400'
                 else if (tipos.includes('permiso')) dayBorderColor = 'border-yellow-400'
+                else if (tipos.includes('hito')) dayBorderColor = 'border-indigo-400'
                 else if (tipos.includes('ausencia_con_aviso')) dayBorderColor = 'border-gray-400'
 
                 return (
@@ -263,7 +270,7 @@ export default function CalendarioPage() {
                     {dayEvents.length > 0 && (
                       <div className="mt-1 space-y-0.5">
                         {dayEvents.slice(0, 3).map((evento, eIdx) => (
-                          <div key={eIdx} className={`text-xs px-1 py-0.5 rounded truncate ${TIPO_CONFIG[evento.tipo].color} text-white`}
+                          <div key={eIdx} className={`text-xs px-1 py-0.5 rounded truncate ${TIPO_CONFIG[evento.tipo]?.color || 'bg-gray-400'} text-white ${evento.importante ? 'ring-2 ring-red-500' : ''}`}
                             title={`${evento.profesor_nombre}: ${evento.detalle}`}>
                             {evento.profesor_nombre.split(' ')[0]}
                           </div>

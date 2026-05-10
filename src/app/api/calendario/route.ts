@@ -118,12 +118,41 @@ export async function GET(request: NextRequest) {
       })
     })
 
+    // 5. Hitos PME del mes
+    const { data: hitos } = await supabase
+      .from('hitos_pme')
+      .select('*')
+      .gte('fecha', fechaDesde)
+      .lte('fecha', fechaHasta)
+
+    // Procesar hitos (pueden ser de varios días)
+    hitos?.forEach((hito) => {
+      const desde = new Date(hito.fecha + 'T12:00:00')
+      const hasta = hito.fecha_fin ? new Date(hito.fecha_fin + 'T12:00:00') : desde
+
+      for (let d = new Date(desde); d <= hasta; d.setDate(d.getDate() + 1)) {
+        const fechaStr = d.toISOString().split('T')[0]
+        if (fechaStr >= fechaDesde && fechaStr <= fechaHasta) {
+          addEvento(fechaStr, {
+            profesor_id: null,
+            profesor_nombre: hito.tipo === 'feriado' ? 'Feriado' : hito.tipo === 'dia_especial' ? 'Día especial' : 'Hito PME',
+            departamento: null,
+            tipo: 'hito',
+            subtipo: hito.tipo,
+            detalle: `${hito.titulo}${hito.descripcion ? ': ' + hito.descripcion : ''}`,
+            importante: hito.importante,
+          })
+        }
+      }
+    })
+
     return NextResponse.json({
       mes,
       fecha_desde: fechaDesde,
       fecha_hasta: fechaHasta,
       profesores: profesores || [],
       eventos,
+      hitos: hitos || [],
       resumen: {
         total_profesores: profesores?.length || 0,
         total_eventos: Object.values(eventos).flat().length,

@@ -114,11 +114,11 @@ export default function DashboardPage() {
             <p className="text-xs text-gray-400 mt-1">Consejo de profesores</p>
           </Link>
 
-          <div className="bg-white rounded-lg shadow p-6 opacity-50">
+          <Link href="/hitos" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition">
             <p className="text-3xl font-bold text-teal-600">🎉</p>
             <p className="text-gray-600 mt-2">Hitos PME</p>
-            <p className="text-xs text-gray-400 mt-1">(próximamente)</p>
-          </div>
+            <p className="text-xs text-gray-400 mt-1">Fechas clave y evaluaciones</p>
+          </Link>
         </div>
 
         {/* Recent Activity */}
