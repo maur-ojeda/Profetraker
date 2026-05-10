@@ -153,16 +153,21 @@ export default function ProfesoresPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-800">Profesores</h2>
-          <button
-            onClick={() => {
-              setEditingProfesor(null)
-              setFormData({ nombre: '', email: '', telefono: '', departamento: '', cursos_asignados: '' })
-              setShowModal(true)
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2"
-          >
-            <span>➕</span> Agregar Profesor
-          </button>
+          <div className="flex gap-2">
+            <Link href="/profesores/importar" className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg flex items-center gap-2">
+              📄 Importar CSV
+            </Link>
+            <button
+              onClick={() => {
+                setEditingProfesor(null)
+                setFormData({ nombre: '', email: '', telefono: '', departamento: '', cursos_asignados: '' })
+                setShowModal(true)
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2"
+            >
+              <span>➕</span> Agregar Profesor
+            </button>
+          </div>
         </div>
 
         {/* Filtros */}
