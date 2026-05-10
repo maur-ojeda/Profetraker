@@ -94,6 +94,32 @@ export default function DashboardPage() {
           </Link>
         </div>
 
+        {/* Fila 2 */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Link href="/salidas" className="bg-white rounded-lg shadow p-6 hover:shadow-md transition">
+            <p className="text-3xl font-bold text-purple-600">🚌</p>
+            <p className="text-gray-600 mt-2">Salidas</p>
+            <p className="text-xs text-gray-400 mt-1">Salidas pedagógicas</p>
+          </Link>
+
+          <div className="bg-white rounded-lg shadow p-6 opacity-50">
+            <p className="text-3xl font-bold text-orange-600">🤝</p>
+            <p className="text-gray-600 mt-2">Reuniones</p>
+            <p className="text-xs text-gray-400 mt-1">(próximamente)</p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6 opacity-50">
+            <p className="text-3xl font-bold text-indigo-600">🏫</p>
+            <p className="text-gray-600 mt-2">Consejo</p>
+            <p className="text-xs text-gray-400 mt-1">(próximamente)</p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6 opacity-50">
+            <p className="text-3xl font-bold text-teal-600">🎉</p>
+            <p className="text-gray-600 mt-2">Hitos PME</p>
+            <p className="text-xs text-gray-400 mt-1">(próximamente)</p>
+          </div>
+
         {/* Recent Activity */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="font-semibold text-gray-800 mb-4">Actividad Reciente</h3>

@@ -1,0 +1,11 @@
+nombre,email,telefono,departamento,cursos
+Pedro Sarmiento,p.sarmiento@colegio.edu,+569 1111 2222,Matemática,"MAT101, MAT202, MAT301"
+Lucía Fernández,l.fernandez@colegio.edu,+569 2222 3333,Lenguaje,"LEN101, LEN202"
+Roberto Morales,r.morales@colegio.edu,+569 3333 4444,Ciencias,"CIE101, CIE202, CIE301"
+Carolina Vega,c.vega@colegio.edu,+569 4444 5555,Historia,"HIS101, HIS202"
+Fernando Castro,f.castro@colegio.edu,+569 5555 6664,Ed. Física,"EDF101, EDF202"
+Isabel Muñoz,i.munoz@colegio.edu,+569 6666 7777,Arte,"ART101"
+Diego Herrera,d.herrera@colegio.edu,+569 7777 8888,Inglés,"ING101, ING202"
+Valentina Riquelme,v.riquelme@colegio.edu,+569 8888 9999,Matemática,"MAT102, MAT203"
+Cristián Tapia,c.tapia@colegio.edu,+569 9999 0000,Lenguaje,"LEN102, LEN203"
+Florencia Espinoza,f.espinoza@colegio.edu,+569 0000 1111,Ciencias,"CIE102"
