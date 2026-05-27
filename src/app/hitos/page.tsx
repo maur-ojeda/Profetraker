@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AppHeader from '@/components/AppHeader'
 import { BarChart3, FileText, Target, Users, Sparkles, Umbrella, Pin, Calendar, Star, Plus, Trash2 } from 'lucide-react'
+import PageAnimator from '@/components/PageAnimator'
 
 interface Hito {
   id: string
@@ -92,7 +93,7 @@ export default function HitosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface">
+    <PageAnimator mode="all" className="min-h-screen bg-surface">
       <AppHeader />
 
       {/* ═══ Main ═══ */}
@@ -126,7 +127,7 @@ export default function HitosPage() {
                   {items.map((h) => {
                     const config = TIPO_CONFIG[h.tipo] || TIPO_CONFIG.otro
                     return (
-                      <div key={h.id} className={`card flex items-center gap-3 ${h.importante ? 'border-l-[3px] border-l-error' : ''}`}>
+                      <div key={h.id} data-animate="card" className={`card flex items-center gap-3 ${h.importante ? 'border-l-[3px] border-l-error' : ''}`}>
                         <div className="p-1.5 rounded-lg bg-surface-muted">
                           <config.icon className="w-5 h-5 text-ink-slate" />
                         </div>
@@ -207,6 +208,6 @@ export default function HitosPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageAnimator>
   )
 }

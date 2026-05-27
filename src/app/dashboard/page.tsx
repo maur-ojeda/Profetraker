@@ -23,6 +23,7 @@ import {
   Plus,
 } from 'lucide-react'
 import AppHeader from '@/components/AppHeader'
+import { usePageIn, useCardStagger, useCardHover } from '@/lib/animation-hooks'
 
 // ─── Calendar types ──────────────────────────────────────────────────
 
@@ -472,6 +473,11 @@ function MiniCalendar({
 // ─── Main Component ──────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const containerRef = useRef<HTMLDivElement>(null!)
+  usePageIn(containerRef)
+  useCardStagger(containerRef, 40)
+  const cardHover = useCardHover()
+
   // Calendar state
   const [weekMonday, setWeekMonday] = useState(() => getMonday(new Date()))
   const [data, setData] = useState<SemanalResponse | null>(null)
@@ -616,11 +622,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen bg-surface" ref={containerRef}>
       <AppHeader />
 
       {/* ═══ Calendar Main ═══ */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-5">
+      <main data-animate="page" className="max-w-7xl mx-auto px-4 sm:px-6 py-5">
         {/* ── Toolbar ── */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <div className="flex items-center gap-1.5 bg-surface border border-border-light rounded-lg px-3 py-1.5">
@@ -718,8 +724,10 @@ export default function DashboardPage() {
                     key={dateStr}
                     data-day-column
                     onClick={() => openModal(dateStr)}
+                    onMouseEnter={cardHover.onMouseEnter}
+                    onMouseLeave={cardHover.onMouseLeave}
                     className={`
-                      bg-surface rounded-xl border flex flex-col min-h-[420px] transition-all cursor-pointer
+                      bg-surface rounded-xl border flex flex-col min-h-[420px] transition-shadow cursor-pointer
                       ${isToday ? 'ring-2 ring-info border-info/60' : 'border-border-light'}
                       ${isVisible ? 'flex sm:flex' : 'hidden sm:flex'}
                     `}
@@ -757,7 +765,7 @@ export default function DashboardPage() {
             </div>
 
             {/* RIGHT: Sidebar */}
-            <div className="space-y-4 lg:sticky lg:top-5 lg:self-start">
+            <div data-animate="card" className="space-y-4 lg:sticky lg:top-5 lg:self-start">
               <MiniCalendar
                 eventos={data.eventos}
                 currentWeekMonday={weekMonday}
@@ -784,7 +792,7 @@ export default function DashboardPage() {
                   })
                 }}
               />
-              <div className="grid grid-cols-3 gap-2">
+              <div data-animate="card" className="grid grid-cols-3 gap-2">
                 <ResumenCard label="Licencias" count={filteredResumen.licencias} color="text-red-600" bg="bg-red-50" border="border-red-200" />
                 <ResumenCard label="Permisos" count={filteredResumen.permisos} color="text-orange-600" bg="bg-orange-50" border="border-orange-200" />
                 <ResumenCard label="Ausencias" count={filteredResumen.ausencias} color="text-ink-muted" bg="bg-surface-muted" border="border-border-light" />

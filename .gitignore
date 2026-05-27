@@ -25,6 +25,19 @@ Thumbs.db
 *.log
 npm-debug.log*
 
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# AI tooling
+.atl/
+
+# Review artifacts
+_reviews/
+review-*.png
+
+# Design docs (not code)
+design.md
+
 # Supabase
 supabase/.branches/
 supabase/.temp/

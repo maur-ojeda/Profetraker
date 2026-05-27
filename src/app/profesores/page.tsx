@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import AppHeader from '@/components/AppHeader'
+import PageAnimator from '@/components/PageAnimator'
 import { Download, Plus, Mail, Phone, Building2, BookOpen, Trash2, Edit3, Search } from 'lucide-react'
 
 interface Profesor {
@@ -131,7 +132,7 @@ export default function ProfesoresPage() {
   }, [profesores, searchQuery])
 
   return (
-    <div className="min-h-screen bg-surface">
+    <PageAnimator mode="all" className="min-h-screen bg-surface">
       <AppHeader />
 
       {/* ═══ Main ═══ */}
@@ -182,6 +183,7 @@ export default function ProfesoresPage() {
             {filteredProfesores.map((profesor) => (
               <div
                 key={profesor.id}
+                data-animate="card"
                 className={`card ${profesor.activo ? '' : 'opacity-60'}`}
               >
                 <div className="flex justify-between items-start mb-3">
@@ -280,6 +282,6 @@ export default function ProfesoresPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageAnimator>
   )
 }

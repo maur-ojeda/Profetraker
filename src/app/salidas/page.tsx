@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import AppHeader from '@/components/AppHeader'
 import { Calendar, Clock, MapPin, Target, FileText, Plus, Trash2 } from 'lucide-react'
+import PageAnimator from '@/components/PageAnimator'
 
 interface Salida {
   id: string
@@ -105,7 +106,7 @@ export default function SalidasPage() {
   const formatHora = (h: string) => h?.substring(0, 5)
 
   return (
-    <div className="min-h-screen bg-surface">
+    <PageAnimator mode="all" className="min-h-screen bg-surface">
       <AppHeader />
 
       {/* ═══ Main ═══ */}
@@ -129,7 +130,7 @@ export default function SalidasPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {salidas.map((salida) => (
-              <div key={salida.id} className="card border-l-[3px] border-l-info">
+              <div key={salida.id} data-animate="card" className="card border-l-[3px] border-l-info">
                 <div className="flex justify-between items-start">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2 flex-wrap">
@@ -244,6 +245,6 @@ export default function SalidasPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageAnimator>
   )
 }

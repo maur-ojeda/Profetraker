@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import AppHeader from '@/components/AppHeader'
 import { Calendar, Clock, MapPin, FileText, Users, Building2, Pin, CheckSquare, BookOpen, Save, Link2, ClipboardList, Plus, Trash2, X } from 'lucide-react'
+import PageAnimator from '@/components/PageAnimator'
 
 interface Reunion {
   id: string
@@ -139,7 +140,7 @@ export default function ReunionesPage() {
   const formatHora = (h: string) => h?.substring(0, 5)
 
   return (
-    <div className="min-h-screen bg-surface">
+    <PageAnimator mode="all" className="min-h-screen bg-surface">
       <AppHeader />
 
       {/* ═══ Main ═══ */}
@@ -163,7 +164,7 @@ export default function ReunionesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {reuniones.map((r) => (
-              <div key={r.id} className="card cursor-pointer hover:border-rule transition-colors"
+              <div key={r.id} data-animate="card" className="card cursor-pointer hover:border-rule transition-colors"
                 onClick={() => { setShowDetail(r); setActaForm({ acuerdos: r.acuerdos || '', acta: r.acta || '' }) }}>
                 <div className="flex justify-between items-start">
                   <div className="flex-1 min-w-0">
@@ -369,6 +370,6 @@ export default function ReunionesPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageAnimator>
   )
 }

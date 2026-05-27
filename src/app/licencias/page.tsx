@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import AppHeader from '@/components/AppHeader'
 import { HeartPulse, Baby, BabyIcon, User, BookOpen, Plus, FileWarning, Calendar, AlertTriangle, FileText, Trash2, Search } from 'lucide-react'
+import PageAnimator from '@/components/PageAnimator'
 
 interface Licencia {
   id: string
@@ -149,7 +150,7 @@ export default function LicenciasPage() {
   }, [licencias, searchQuery])
 
   return (
-    <div className="min-h-screen bg-surface">
+    <PageAnimator mode="all" className="min-h-screen bg-surface">
       <AppHeader />
 
       {/* ═══ Main ═══ */}
@@ -203,7 +204,7 @@ export default function LicenciasPage() {
               const diasCorridos = calcDias(lic.fecha_desde, lic.fecha_hasta)
               const Icon = TIPO_CONFIG[lic.tipo]?.icon || FileText
               return (
-                <div key={lic.id} className="card">
+                <div key={lic.id} data-animate="card" className="card">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="min-w-0">
                       <p className="font-medium text-ink truncate">{lic.profesor?.nombre || '—'}</p>
@@ -299,6 +300,6 @@ export default function LicenciasPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageAnimator>
   )
 }

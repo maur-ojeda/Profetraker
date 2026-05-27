@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import AppHeader from '@/components/AppHeader'
 import { Calendar, Clock, MapPin, Users, FileText, Pin, BookOpen, CheckSquare, Save, Plus, Trash2, X } from 'lucide-react'
+import PageAnimator from '@/components/PageAnimator'
 
 interface Consejo {
   id: string
@@ -116,7 +117,7 @@ export default function ConsejoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface">
+    <PageAnimator mode="all" className="min-h-screen bg-surface">
       <AppHeader />
 
       {/* ═══ Main ═══ */}
@@ -140,7 +141,7 @@ export default function ConsejoPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {consejos.map((c) => (
-              <div key={c.id} className="card cursor-pointer border-l-[3px] border-l-info hover:border-rule transition-colors"
+              <div key={c.id} data-animate="card" className="card cursor-pointer border-l-[3px] border-l-info hover:border-rule transition-colors"
                 onClick={() => { setShowDetail(c); setDetailForm({ acuerdos: c.acuerdos || '', compromisos: c.compromisos || '', acta: c.acta || '' }) }}>
                 <div className="flex justify-between items-start">
                   <div className="flex-1 min-w-0">
@@ -319,6 +320,6 @@ export default function ConsejoPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageAnimator>
   )
 }
