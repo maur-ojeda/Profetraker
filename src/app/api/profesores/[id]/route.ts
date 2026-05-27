@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabase'
 // PATCH /api/profesores/[id] - Update a professor
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     
     // Fields that can be updated
@@ -77,10 +77,10 @@ export async function PATCH(
 // DELETE /api/profesores/[id] - Soft delete a professor
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     
     // Soft delete: set activo to false
     const { data, error } = await supabase
@@ -116,10 +116,10 @@ export async function DELETE(
 // GET /api/profesores/[id] - Get a single professor
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     
     const { data, error } = await supabase
       .from('profesores')

@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabase'
 // DELETE /api/consejo/[id]
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const { data: consejo } = await supabase.from('consejo_profesores').select('id').eq('id', id).single()
     if (!consejo) return NextResponse.json({ error: 'Consejo no encontrado' }, { status: 404 })
 
@@ -22,10 +22,10 @@ export async function DELETE(
 // PATCH /api/consejo/[id]
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
     const allowedFields = ['titulo', 'fecha', 'hora_inicio', 'hora_fin', 'lugar', 'responsables', 'temas_a_tratar', 'acuerdos', 'compromisos', 'acta', 'estado']

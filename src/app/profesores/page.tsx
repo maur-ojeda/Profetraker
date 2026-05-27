@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import AppHeader from '@/components/AppHeader'
+import { Download, Plus, Mail, Phone, Building2, BookOpen, Trash2, Edit3, Search } from 'lucide-react'
 
 interface Profesor {
   id: string
@@ -18,7 +20,7 @@ interface Profesor {
 export default function ProfesoresPage() {
   const [profesores, setProfesores] = useState<Profesor[]>([])
   const [loading, setLoading] = useState(true)
-  const [departamentoFilter, setDepartamentoFilter] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingProfesor, setEditingProfesor] = useState<Profesor | null>(null)
   const [formData, setFormData] = useState({
@@ -31,7 +33,7 @@ export default function ProfesoresPage() {
 
   useEffect(() => {
     fetchProfesores()
-  }, [departamentoFilter])
+  }, [])
 
   const fetchProfesores = async () => {
     setLoading(true)
@@ -39,10 +41,6 @@ export default function ProfesoresPage() {
       .from('profesores')
       .select('*')
       .order('nombre', { ascending: true })
-
-    if (departamentoFilter) {
-      query = query.eq('departamento', departamentoFilter)
-    }
 
     const { data, error } = await query
 
@@ -73,14 +71,12 @@ export default function ProfesoresPage() {
     let error
 
     if (editingProfesor) {
-      // Update existing
       const { error: updateError } = await supabase
         .from('profesores')
         .update(payload)
         .eq('id', editingProfesor.id)
       error = updateError
     } else {
-      // Create new
       const { error: insertError } = await supabase
         .from('profesores')
         .insert(payload)
@@ -124,38 +120,28 @@ export default function ProfesoresPage() {
     }
   }
 
-  const departamentos = [...new Set(profesores.map((p) => p.departamento).filter(Boolean))]
+  const filteredProfesores = useMemo(() => {
+    if (!searchQuery.trim()) return profesores
+    const q = searchQuery.toLowerCase()
+    return profesores.filter((p) =>
+      p.nombre.toLowerCase().includes(q) ||
+      p.email.toLowerCase().includes(q) ||
+      (p.departamento && p.departamento.toLowerCase().includes(q))
+    )
+  }, [profesores, searchQuery])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">PROFE TRACKER</h1>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-blue-600 hover:underline">
-              Dashboard
-            </Link>
-            <button
-              onClick={async () => {
-                await supabase.auth.signOut()
-                window.location.href = '/login'
-              }}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              Cerrar sesión
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-surface">
+      <AppHeader />
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">Profesores</h2>
-          <div className="flex gap-2">
-            <Link href="/profesores/importar" className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg flex items-center gap-2">
-              📄 Importar CSV
+      {/* ═══ Main ═══ */}
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <div className="mb-6">
+          <h2 className="text-2xl font-display font-semibold tracking-tight text-ink">Profesores</h2>
+          <p className="text-sm text-ink-muted mt-0.5">Gestión de planta docente</p>
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Link href="/profesores/importar" className="btn-secondary text-sm">
+              <Download className="w-4 h-4" /> Importar CSV
             </Link>
             <button
               onClick={() => {
@@ -163,84 +149,76 @@ export default function ProfesoresPage() {
                 setFormData({ nombre: '', email: '', telefono: '', departamento: '', cursos_asignados: '' })
                 setShowModal(true)
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2"
+              className="btn-primary"
             >
-              <span>➕</span> Agregar Profesor
+              <Plus className="w-4 h-4" /> Agregar Profesor
             </button>
           </div>
         </div>
 
         {/* Filtros */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Filtrar por departamento
-          </label>
-          <select
-            value={departamentoFilter}
-            onChange={(e) => setDepartamentoFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg px-4 py-2 max-w-xs"
-          >
-            <option value="">Todos los departamentos</option>
-            {departamentos.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-slate pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar por nombre, email o departamento..."
+              className="input w-full pr-10"
+            />
+          </div>
         </div>
 
         {/* Loading State */}
         {loading ? (
-          <div className="text-center py-12 text-gray-500">Cargando...</div>
-        ) : profesores.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            No hay profesores registrados
+          <div className="text-center py-12 text-ink-muted">Cargando...</div>
+        ) : filteredProfesores.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-ink-muted">{searchQuery ? 'No se encontraron resultados' : 'No hay profesores registrados'}</p>
           </div>
         ) : (
-          /* Grid de profesores */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {profesores.map((profesor) => (
+            {filteredProfesores.map((profesor) => (
               <div
                 key={profesor.id}
-                className={`bg-white rounded-lg shadow p-4 border-l-4 ${
-                  profesor.activo ? 'border-green-500' : 'border-gray-300'
-                }`}
+                className={`card ${profesor.activo ? '' : 'opacity-60'}`}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-lg text-gray-900">{profesor.nombre}</h3>
-                  <span
-                    className={`text-xs px-2 py-1 rounded ${
-                      profesor.activo
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}
-                  >
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="font-semibold text-ink">{profesor.nombre}</h3>
+                  <span className={`badge ${profesor.activo ? 'badge-success' : 'badge-inactive'}`}>
                     {profesor.activo ? 'Activo' : 'Inactivo'}
                   </span>
                 </div>
 
-                <div className="space-y-1 text-sm text-gray-600">
-                  <p>📧 {profesor.email}</p>
-                  {profesor.telefono && <p>📞 {profesor.telefono}</p>}
-                  {profesor.departamento && <p>🏫 {profesor.departamento}</p>}
+                <div className="space-y-1.5 text-sm">
+                  <p className="flex items-center gap-1.5 text-ink-muted">
+                    <Mail className="w-3.5 h-3.5 text-ink-slate" /> {profesor.email}
+                  </p>
+                  {profesor.telefono && (
+                    <p className="flex items-center gap-1.5 text-ink-muted">
+                      <Phone className="w-3.5 h-3.5 text-ink-slate" /> {profesor.telefono}
+                    </p>
+                  )}
+                  {profesor.departamento && (
+                    <p className="flex items-center gap-1.5 text-ink-muted">
+                      <Building2 className="w-3.5 h-3.5 text-ink-slate" /> {profesor.departamento}
+                    </p>
+                  )}
                   {profesor.cursos_asignados && (
-                    <p>📚 {profesor.cursos_asignados.join(', ')}</p>
+                    <p className="flex items-center gap-1.5 text-ink-muted">
+                      <BookOpen className="w-3.5 h-3.5 text-ink-slate" /> {profesor.cursos_asignados.join(', ')}
+                    </p>
                   )}
                 </div>
 
                 {profesor.activo && (
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      onClick={() => handleEdit(profesor)}
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      Editar
+                  <div className="mt-4 flex gap-3 pt-3 border-t border-border-light">
+                    <button onClick={() => handleEdit(profesor)} className="btn-secondary text-sm flex items-center gap-1">
+                      <Edit3 className="w-3.5 h-3.5" /> Editar
                     </button>
-                    <button
-                      onClick={() => handleDelete(profesor)}
-                      className="text-sm text-red-600 hover:underline"
-                    >
-                      Eliminar
+                    <button onClick={() => handleDelete(profesor)} className="btn-secondary text-sm flex items-center gap-1 text-error">
+                      <Trash2 className="w-3.5 h-3.5" /> Eliminar
                     </button>
                   </div>
                 )}
@@ -250,96 +228,53 @@ export default function ProfesoresPage() {
         )}
       </main>
 
-      {/* Modal */}
+      {/* ═══ Modal ═══ */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold mb-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-surface rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h3 className="text-lg font-display font-semibold text-ink mb-4">
               {editingProfesor ? 'Editar Profesor' : 'Nuevo Profesor'}
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                />
+                <label className="block text-sm font-medium text-ink mb-1">Nombre *</label>
+                <input type="text" required value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} className="input" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                />
+                <label className="block text-sm font-medium text-ink mb-1">Email *</label>
+                <input type="email" required value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="input" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Teléfono
-                </label>
-                <input
-                  type="tel"
-                  value={formData.telefono}
-                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                />
+                <label className="block text-sm font-medium text-ink mb-1">Teléfono</label>
+                <input type="tel" value={formData.telefono}
+                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} className="input" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Departamento
-                </label>
-                <input
-                  type="text"
-                  value={formData.departamento}
+                <label className="block text-sm font-medium text-ink mb-1">Departamento</label>
+                <input type="text" value={formData.departamento}
                   onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
-                  placeholder="Ej: Matemática, Lenguaje, Ciencias"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                />
+                  placeholder="Ej: Matemática, Lenguaje, Ciencias" className="input" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Cursos (separados por coma)
-                </label>
-                <input
-                  type="text"
-                  value={formData.cursos_asignados}
+                <label className="block text-sm font-medium text-ink mb-1">Cursos (separados por coma)</label>
+                <input type="text" value={formData.cursos_asignados}
                   onChange={(e) => setFormData({ ...formData, cursos_asignados: e.target.value })}
-                  placeholder="Ej: MAT101, FIS202"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                />
+                  placeholder="Ej: MAT101, FIS202" className="input" />
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg"
-                >
+                <button type="submit" className="btn-primary flex-1">
                   {editingProfesor ? 'Guardar Cambios' : 'Crear Profesor'}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowModal(false)
-                    setEditingProfesor(null)
-                  }}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg"
-                >
-                  Cancelar
-                </button>
+                <button type="button" onClick={() => { setShowModal(false); setEditingProfesor(null) }}
+                  className="btn-secondary flex-1 justify-center">Cancelar</button>
               </div>
             </form>
           </div>

@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabase'
 // DELETE /api/hitos/[id]
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const { data: hito } = await supabase.from('hitos_pme').select('id').eq('id', id).single()
     if (!hito) return NextResponse.json({ error: 'Hito no encontrado' }, { status: 404 })
 

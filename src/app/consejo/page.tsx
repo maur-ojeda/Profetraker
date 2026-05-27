@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import Link from 'next/link'
+import AppHeader from '@/components/AppHeader'
+import { Calendar, Clock, MapPin, Users, FileText, Pin, BookOpen, CheckSquare, Save, Plus, Trash2, X } from 'lucide-react'
 
 interface Consejo {
   id: string
@@ -21,10 +22,13 @@ interface Consejo {
   responsables_detalle?: Array<{ id: string; nombre: string; departamento: string | null }>
 }
 
-const ESTADO_COLORS: Record<string, string> = {
-  programada: 'bg-blue-100 text-blue-700',
-  realizado: 'bg-green-100 text-green-700',
-  cancelado: 'bg-gray-100 text-gray-600',
+function EstadoBadge({ estado }: { estado: string }) {
+  const config: Record<string, string> = {
+    programada: 'badge-info',
+    realizado: 'badge-success',
+    cancelado: 'badge-inactive',
+  }
+  return <span className={`badge ${config[estado] || 'badge-inactive'}`}>{estado}</span>
 }
 
 export default function ConsejoPage() {
@@ -53,7 +57,12 @@ export default function ConsejoPage() {
       supabase.from('consejo_profesores').select('*').order('fecha', { ascending: false }),
       supabase.from('profesores').select('id, nombre, departamento').eq('activo', true).order('nombre'),
     ])
-    setConsejos(cRes.data || [])
+    setConsejos((cRes.data || []).map(c => ({
+      ...c,
+      responsables_detalle: (c.responsables || [])
+        .map((id: string) => (pRes.data || []).find(p => p.id === id))
+        .filter(Boolean),
+    })))
     setProfesores(pRes.data || [])
     setLoading(false)
   }
@@ -107,62 +116,60 @@ export default function ConsejoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">PROFE TRACKER</h1>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-blue-600 hover:underline">Dashboard</Link>
-            <Link href="/calendario" className="text-blue-600 hover:underline">Calendario</Link>
-            <Link href="/salidas" className="text-blue-600 hover:underline">Salidas</Link>
-            <Link href="/reuniones" className="text-blue-600 hover:underline">Reuniones</Link>
-            <Link href="/consejo" className="text-blue-600 font-semibold border-b-2 border-blue-600">Consejo</Link>
-            <Link href="/licencias" className="text-blue-600 hover:underline">Licencias</Link>
-            <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }} className="text-gray-600 hover:text-gray-900">Cerrar sesión</button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-surface">
+      <AppHeader />
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800">Consejo de Profesores</h2>
-            <p className="text-sm text-gray-500">Convocatorias, temas, acuerdos y compromisos</p>
+      {/* ═══ Main ═══ */}
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <div className="mb-6">
+          <h2 className="text-2xl font-display font-semibold tracking-tight text-ink">Consejo de Profesores</h2>
+          <p className="text-sm text-ink-muted mt-0.5">Convocatorias, temas, acuerdos y compromisos</p>
+          <div className="mt-4">
+            <button onClick={() => setShowModal(true)} className="btn-primary">
+              <Plus className="w-4 h-4" /> Nueva Convocatoria
+            </button>
           </div>
-          <button onClick={() => setShowModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">➕ Nueva Convocatoria</button>
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-gray-500">Cargando...</div>
+          <div className="text-center py-12 text-ink-muted">Cargando...</div>
         ) : consejos.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">No hay consejos registrados</div>
+          <div className="text-center py-12">
+            <p className="text-ink-muted">No hay consejos registrados</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {consejos.map((c) => (
-              <div key={c.id} className="bg-white rounded-lg shadow p-4 hover:shadow-md transition cursor-pointer border-l-4 border-indigo-500"
+              <div key={c.id} className="card cursor-pointer border-l-[3px] border-l-info hover:border-rule transition-colors"
                 onClick={() => { setShowDetail(c); setDetailForm({ acuerdos: c.acuerdos || '', compromisos: c.compromisos || '', acta: c.acta || '' }) }}>
                 <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className={`text-xs px-2 py-1 rounded ${ESTADO_COLORS[c.estado]}`}>{c.estado}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <EstadoBadge estado={c.estado} />
                     </div>
-                    <h3 className="font-semibold text-gray-800">{c.titulo}</h3>
-                    <div className="flex flex-wrap gap-3 mt-1 text-sm text-gray-500">
-                      <span>📅 {new Date(c.fecha + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                      <span>🕐 {c.hora_inicio?.substring(0, 5)}{c.hora_fin ? ` - ${c.hora_fin.substring(0, 5)}` : ''}</span>
-                      {c.lugar && <span>📍 {c.lugar}</span>}
+                    <h3 className="font-semibold text-ink">{c.titulo}</h3>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-ink-muted">
+                      <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-ink-slate" /> {new Date(c.fecha + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-ink-slate" /> {c.hora_inicio?.substring(0, 5)}{c.hora_fin ? ` - ${c.hora_fin.substring(0, 5)}` : ''}</span>
+                      {c.lugar && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-ink-slate" /> {c.lugar}</span>}
                     </div>
                     {c.responsables_detalle && c.responsables_detalle.length > 0 && (
-                      <div className="mt-2">
-                        <span className="text-xs text-gray-400">Responsables: </span>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        <span className="text-xs text-ink-muted">Responsables:</span>
                         {c.responsables_detalle.map(r => (
-                          <span key={r.id} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded mr-1">{r.nombre}</span>
+                          <span key={r.id} className="badge bg-surface-muted text-info text-[11px]">{r.nombre}</span>
                         ))}
                       </div>
                     )}
-                    {c.acuerdos && <p className="text-xs text-green-600 mt-2">✅ Tiene acuerdos y compromisos</p>}
+                    {c.acuerdos && (
+                      <p className="text-xs text-success mt-2 flex items-center gap-1">
+                        <CheckSquare className="w-3 h-3" /> Tiene acuerdos y compromisos
+                      </p>
+                    )}
                   </div>
-                  <button onClick={(e) => { e.stopPropagation(); handleDelete(c.id) }} className="text-sm text-red-600 hover:underline ml-4">Eliminar</button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(c.id) }} className="btn-secondary text-sm shrink-0 ml-4">
+                    <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                  </button>
                 </div>
               </div>
             ))}
@@ -170,144 +177,142 @@ export default function ConsejoPage() {
         )}
       </main>
 
-      {/* Modal Nueva Convocatoria */}
+      {/* ═══ Modal Nueva Convocatoria ═══ */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Nueva Convocatoria</h3>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-surface rounded-xl shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-display font-semibold text-ink mb-4">Nueva Convocatoria</h3>
             <form onSubmit={handleSave} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
-                <input type="text" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2" />
+                <label className="block text-sm font-medium text-ink mb-1">Título</label>
+                <input type="text" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} className="input" />
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
-                  <input type="date" required value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  <label className="block text-sm font-medium text-ink mb-1">Fecha *</label>
+                  <input type="date" required value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} className="input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Hora inicio *</label>
-                  <input type="time" required value={form.hora_inicio} onChange={(e) => setForm({ ...form, hora_inicio: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  <label className="block text-sm font-medium text-ink mb-1">Hora inicio *</label>
+                  <input type="time" required value={form.hora_inicio} onChange={(e) => setForm({ ...form, hora_inicio: e.target.value })} className="input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Hora fin</label>
-                  <input type="time" value={form.hora_fin} onChange={(e) => setForm({ ...form, hora_fin: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  <label className="block text-sm font-medium text-ink mb-1">Hora fin</label>
+                  <input type="time" value={form.hora_fin} onChange={(e) => setForm({ ...form, hora_fin: e.target.value })} className="input" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Lugar</label>
+                <label className="block text-sm font-medium text-ink mb-1">Lugar</label>
                 <input type="text" value={form.lugar} onChange={(e) => setForm({ ...form, lugar: e.target.value })}
-                  placeholder="Sala de reuniones" className="w-full border border-gray-300 rounded-lg px-3 py-2" />
+                  placeholder="Sala de reuniones" className="input" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Responsables</label>
-                <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-1">
+                <label className="block text-sm font-medium text-ink mb-2">Responsables</label>
+                <div className="max-h-32 overflow-y-auto border border-border-light rounded-lg p-2 space-y-1">
                   {profesores.map(p => (
-                    <label key={p.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                      <input type="checkbox" checked={form.responsables.includes(p.id)} onChange={() => toggleResponsable(p.id)} className="rounded" />
-                      <span className="text-sm">{p.nombre}</span>
-                      {p.departamento && <span className="text-xs text-gray-400">({p.departamento})</span>}
+                    <label key={p.id} className="flex items-center gap-2 cursor-pointer hover:bg-surface-muted p-1 rounded transition-colors">
+                      <input type="checkbox" checked={form.responsables.includes(p.id)} onChange={() => toggleResponsable(p.id)}
+                        className="rounded border-rule text-primary-accent focus:ring-focus" />
+                      <span className="text-sm text-ink">{p.nombre}</span>
+                      {p.departamento && <span className="text-xs text-ink-slate">({p.departamento})</span>}
                     </label>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Temas a tratar (orden del día)</label>
+                <label className="block text-sm font-medium text-ink mb-1">Temas a tratar (orden del día)</label>
                 <textarea value={form.temas_a_tratar} onChange={(e) => setForm({ ...form, temas_a_tratar: e.target.value })}
-                  rows={5} className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="1. Revisión de acta anterior&#10;2. Estado del PME&#10;3. Temas varios&#10;4. Próxima reunión" />
+                  rows={5} className="input" placeholder="1. Revisión de acta anterior&#10;2. Estado del PME&#10;3. Temas varios&#10;4. Próxima reunión" />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="submit" disabled={saving} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50">
+                <button type="submit" disabled={saving} className="btn-primary flex-1">
                   {saving ? 'Guardando...' : 'Crear Convocatoria'}
                 </button>
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg">Cancelar</button>
+                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1 justify-center">Cancelar</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Modal Detalle */}
+      {/* ═══ Modal Detalle ═══ */}
       {showDetail && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm" onClick={() => setShowDetail(null)}>
+          <div className="bg-surface rounded-xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-4">
               <div>
-                <span className={`text-xs px-2 py-1 rounded ${ESTADO_COLORS[showDetail.estado]}`}>{showDetail.estado}</span>
-                <h3 className="text-lg font-semibold mt-2">{showDetail.titulo}</h3>
-                <p className="text-sm text-gray-500">
-                  📅 {new Date(showDetail.fecha + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                <EstadoBadge estado={showDetail.estado} />
+                <h3 className="text-lg font-display font-semibold text-ink mt-2">{showDetail.titulo}</h3>
+                <p className="text-sm text-ink-muted flex items-center gap-1 mt-0.5">
+                  <Calendar className="w-3.5 h-3.5" /> {new Date(showDetail.fecha + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                   {' • '}{showDetail.hora_inicio?.substring(0, 5)}
                 </p>
               </div>
-              <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+              <button onClick={() => setShowDetail(null)} className="p-1 hover:bg-surface-muted rounded-lg transition-colors">
+                <X className="w-5 h-5 text-ink-muted" />
+              </button>
             </div>
 
-            {showDetail.lugar && <p className="text-sm text-gray-600 mb-3">📍 {showDetail.lugar}</p>}
+            {showDetail.lugar && <p className="text-sm text-ink-muted mb-3 flex items-center gap-1.5"><MapPin className="w-4 h-4 text-ink-slate" /> {showDetail.lugar}</p>}
 
             {showDetail.responsables_detalle && showDetail.responsables_detalle.length > 0 && (
               <div className="mb-3">
-                <h4 className="font-medium text-gray-700 mb-1">👤 Responsables</h4>
+                <h4 className="font-medium text-ink mb-1 flex items-center gap-1.5"><Users className="w-4 h-4 text-ink-slate" /> Responsables</h4>
                 <div className="flex flex-wrap gap-1">
                   {showDetail.responsables_detalle.map(r => (
-                    <span key={r.id} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">{r.nombre}</span>
+                    <span key={r.id} className="badge bg-surface-muted text-info">{r.nombre}</span>
                   ))}
                 </div>
               </div>
             )}
 
             {showDetail.temas_a_tratar && (
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-700 mb-1">📋 Orden del día</h4>
-                <p className="text-sm text-gray-600 whitespace-pre-wrap">{showDetail.temas_a_tratar}</p>
+              <div className="mb-4 p-3 bg-surface-muted rounded-sm">
+                <h4 className="font-medium text-ink mb-1 flex items-center gap-1.5"><FileText className="w-4 h-4 text-ink-slate" /> Orden del día</h4>
+                <p className="text-sm text-ink-muted whitespace-pre-wrap">{showDetail.temas_a_tratar}</p>
               </div>
             )}
 
             {showDetail.estado === 'realizado' && showDetail.acuerdos ? (
-              <div className="space-y-3 border-t pt-4">
+              <div className="space-y-3 border-t border-border-light pt-4">
                 <div>
-                  <h4 className="font-medium text-gray-700 mb-1">✅ Acuerdos</h4>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{showDetail.acuerdos}</p>
+                  <h4 className="font-medium text-ink mb-1 flex items-center gap-1.5"><CheckSquare className="w-4 h-4 text-success" /> Acuerdos</h4>
+                  <p className="text-sm text-ink-muted whitespace-pre-wrap">{showDetail.acuerdos}</p>
                 </div>
                 {showDetail.compromisos && (
                   <div>
-                    <h4 className="font-medium text-gray-700 mb-1">📌 Compromisos</h4>
-                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{showDetail.compromisos}</p>
+                    <h4 className="font-medium text-ink mb-1 flex items-center gap-1.5"><Pin className="w-4 h-4 text-ink-slate" /> Compromisos</h4>
+                    <p className="text-sm text-ink-muted whitespace-pre-wrap">{showDetail.compromisos}</p>
                   </div>
                 )}
                 {showDetail.acta && (
                   <div>
-                    <h4 className="font-medium text-gray-700 mb-1">📝 Acta</h4>
-                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{showDetail.acta}</p>
+                    <h4 className="font-medium text-ink mb-1 flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-ink-slate" /> Acta</h4>
+                    <p className="text-sm text-ink-muted whitespace-pre-wrap">{showDetail.acta}</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="border-t pt-4 mt-4 space-y-3">
-                <h4 className="font-medium text-gray-700">📝 Registrar resultado del consejo</h4>
+              <div className="border-t border-border-light pt-4 mt-4 space-y-3">
+                <h4 className="font-medium text-ink flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-ink-slate" /> Registrar resultado del consejo</h4>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">Acuerdos</label>
+                  <label className="block text-sm text-ink mb-1">Acuerdos</label>
                   <textarea value={detailForm.acuerdos} onChange={(e) => setDetailForm({ ...detailForm, acuerdos: e.target.value })}
-                    rows={3} className="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Acuerdos tomados..." />
+                    rows={3} className="input" placeholder="Acuerdos tomados..." />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">Compromisos</label>
+                  <label className="block text-sm text-ink mb-1">Compromisos</label>
                   <textarea value={detailForm.compromisos} onChange={(e) => setDetailForm({ ...detailForm, compromisos: e.target.value })}
-                    rows={3} className="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Compromisos asumidos..." />
+                    rows={3} className="input" placeholder="Compromisos asumidos..." />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">Acta / Minuta</label>
+                  <label className="block text-sm text-ink mb-1">Acta / Minuta</label>
                   <textarea value={detailForm.acta} onChange={(e) => setDetailForm({ ...detailForm, acta: e.target.value })}
-                    rows={4} className="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Resumen del consejo..." />
+                    rows={4} className="input" placeholder="Resumen del consejo..." />
                 </div>
                 <button onClick={handleSaveDetail} disabled={saving}
-                  className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50">
-                  {saving ? 'Guardando...' : '💾 Guardar y marcar como realizado'}
+                  className="btn-primary flex items-center gap-1.5">
+                  <Save className="w-4 h-4" />{saving ? 'Guardando...' : 'Guardar y marcar como realizado'}
                 </button>
               </div>
             )}

@@ -1,26 +1,298 @@
 @import "tailwindcss";
 
+/* ============================================================
+   PROFE TRACKER — Design System (Cohere-inspired)
+   ============================================================ */
+
+/* ── Step 1: CSS Variables ──────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand & Accent */
+  --primary: #17171c;
+  --primary-accent: #003c33;
+  --link: #1863dc;
+  --coral: #ff7759;
+  --coral-light: #ffad9b;
+
+  /* Surface & Background */
+  --surface: #ffffff;
+  --surface-muted: #f2f2f2;
+  --surface-warm: #eeece7;
+
+  /* Text */
+  --ink: #212121;
+  --ink-muted: #93939f;
+  --ink-slate: #75758a;
+
+  /* Borders & Rules */
+  --rule: #d9d9dd;
+  --border-light: #e5e7eb;
+
+  /* Semantic */
+  --success: #22c55e;
+  --warning: #ff7759;
+  --error: #b30000;
+  --info: #1863dc;
+  --focus: #4c6ee6;
+
+  /* Status (for badges/chips) */
+  --status-active: #22c55e;
+  --status-pending: #ff7759;
+  --status-inactive: #93939f;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 32px;
 }
 
+.dark {
+  --surface: #0a0a0a;
+  --surface-muted: #1a1a1a;
+  --surface-warm: #141414;
+  --ink: #ededed;
+  --ink-muted: #93939f;
+  --ink-slate: #75758a;
+  --rule: #2a2a2a;
+  --border-light: #1a1a1a;
+  --primary: #ededed;
+  --primary-accent: #22c55e;
+}
+
+/* ── Step 2: Map to Tailwind utilities ─────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Brand */
+  --color-primary: var(--primary);
+  --color-primary-accent: var(--primary-accent);
+  --color-link: var(--link);
+  --color-coral: var(--coral);
+  --color-coral-light: var(--coral-light);
+
+  /* Surface */
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-warm: var(--surface-warm);
+
+  /* Text */
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-slate: var(--ink-slate);
+
+  /* Borders */
+  --color-rule: var(--rule);
+  --color-border-light: var(--border-light);
+
+  /* Semantic */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  --color-focus: var(--focus);
+
+  /* Status */
+  --color-status-active: var(--status-active);
+  --color-status-pending: var(--status-pending);
+  --color-status-inactive: var(--status-inactive);
+
+  /* Radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-pill: var(--radius-pill);
+
+  /* Fonts (set via next/font variables) */
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ── Step 3: Base Styles ───────────────────────────────── */
+@layer base {
+  * {
+    border-color: var(--rule);
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-sans, Inter, ui-sans-serif, system-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Focus ring global */
+  *:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: var(--primary-accent);
+    color: white;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── Cohere-inspired Component Recipes ─────────────────── */
+
+/* Button Primary — near-black pill */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: var(--radius-pill);
+  transition: opacity 150ms ease;
+  cursor: pointer;
+  border: none;
+}
+.btn-primary:hover {
+  opacity: 0.85;
+}
+.btn-primary:active {
+  opacity: 0.7;
+}
+
+/* Button Secondary — text link */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--rule);
+  transition: color 150ms ease;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.btn-secondary:hover {
+  color: var(--link);
+  text-decoration-color: var(--link);
+}
+
+/* Card — white, no shadow, thin border */
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 1.5rem;
+}
+
+/* Card with warm surface (product cards, placeholders) */
+.card-warm {
+  background-color: var(--surface-warm);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 1.5rem;
+}
+
+/* Badge — small pill chip */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+.badge-success {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+}
+.badge-warning {
+  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning);
+}
+.badge-error {
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: var(--error);
+}
+.badge-info {
+  background-color: color-mix(in srgb, var(--info) 10%, transparent);
+  color: var(--info);
+}
+.badge-inactive {
+  background-color: var(--surface-muted);
+  color: var(--ink-slate);
+}
+
+/* Input fields */
+.input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background-color: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.input::placeholder {
+  color: var(--ink-muted);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 20%, transparent);
+}
+
+/* Select (styled) */
+select.input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2393939f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
+}
+
+/* Table rows (rule-separated, no vertical borders) */
+.table-row {
+  display: flex;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.table-row:last-child {
+  border-bottom: none;
+}
+
+/* Stat card (dashboard metric) */
+.stat-card {
+  padding: 1.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  transition: border-color 150ms ease;
+}
+.stat-card:hover {
+  border-color: var(--rule);
+}
+
+/* ─── Animations ─── */
+@keyframes slide-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes slide-out {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+
+/* Brief highlight pulse for selected day column */
+@keyframes highlight-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 188, 158, 0); }
+  50%      { box-shadow: 0 0 0 4px rgba(0, 188, 158, 0.3); }
 }

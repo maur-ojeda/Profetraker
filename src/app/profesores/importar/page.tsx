@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import AppHeader from '@/components/AppHeader'
+import { FileText, FileSpreadsheet, Loader2, Download, BarChart3, CheckCircle2, XCircle } from 'lucide-react'
 
 interface ParsedRow {
   nombre: string
@@ -35,7 +36,7 @@ export default function ImportarPage() {
     setHeaders(csvHeaders)
 
     const rows: ParsedRow[] = []
-    for (let i = 1; i < Math.min(lines.length, 100); i++) { // Máximo 100 filas
+    for (let i = 1; i < Math.min(lines.length, 100); i++) {
       const values = lines[i].split(',').map((v) => v.trim().replace(/^"|"$/g, ''))
       rows.push({
         nombre: values[0] || '',
@@ -97,27 +98,20 @@ export default function ImportarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">PROFE TRACKER</h1>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-blue-600 hover:underline">Dashboard</Link>
-            <Link href="/profesores" className="text-blue-600 hover:underline">Profesores</Link>
-            <Link href="/profesores/importar" className="text-blue-600 font-semibold border-b-2 border-blue-600">Importar CSV</Link>
-            <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }} className="text-gray-600 hover:text-gray-900">Cerrar sesión</button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-surface">
+      <AppHeader />
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">Importar Profesores desde CSV</h2>
-        <p className="text-sm text-gray-500 mb-6">Cargá un archivo CSV con los datos de tus profesores</p>
+      {/* ═══ Main ═══ */}
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        <div className="mb-6">
+          <h2 className="text-xl font-display font-semibold tracking-tight text-ink">Importar Profesores desde CSV</h2>
+          <p className="text-sm text-ink-muted mt-0.5">Cargá un archivo CSV con los datos de tus profesores</p>
+        </div>
 
         {/* Formato esperado */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <p className="font-medium text-blue-800 text-sm mb-2">📋 Formato esperado del CSV:</p>
-          <code className="text-xs text-blue-700 block">
+          <p className="font-medium text-blue-800 text-sm mb-2 flex items-center gap-1.5"><FileText className="w-4 h-4" /> Formato esperado del CSV:</p>
+          <code className="text-xs text-blue-700 block leading-relaxed">
             nombre,email,telefono,departamento,cursos<br />
             María González,m.gonzalez@colegio.edu,+569 1234 5678,Matemática,"MAT101, MAT202"
           </code>
@@ -127,7 +121,7 @@ export default function ImportarPage() {
         {!result && (
           <div
             className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors cursor-pointer ${
-              dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400'
+              dragActive ? 'border-primary-accent bg-surface-muted' : 'border-rule hover:border-primary-accent'
             }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -137,11 +131,11 @@ export default function ImportarPage() {
           >
             <input ref={fileInputRef} type="file" accept=".csv" className="hidden"
               onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
-            <p className="text-4xl mb-3">📄</p>
-            <p className="text-gray-600 font-medium">
+            <FileSpreadsheet className="w-12 h-12 mx-auto mb-3 text-ink-slate" />
+            <p className="text-ink font-medium">
               {file ? `Archivo: ${file.name}` : 'Arrastrá tu archivo CSV aquí'}
             </p>
-            <p className="text-sm text-gray-400 mt-1">o hacé click para seleccionar</p>
+            <p className="text-sm text-ink-muted mt-1">o hacé click para seleccionar</p>
           </div>
         )}
 
@@ -149,45 +143,49 @@ export default function ImportarPage() {
         {parsedData.length > 0 && !result && (
           <div className="mt-6">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="font-semibold text-gray-800">
+              <h3 className="font-semibold text-ink">
                 Preview — {parsedData.length} fila{parsedData.length > 1 ? 's' : ''}
               </h3>
-              <button onClick={reset} className="text-sm text-gray-500 hover:underline">Cambiar archivo</button>
+              <button onClick={reset} className="btn-secondary text-sm">Cambiar archivo</button>
             </div>
 
-            <div className="bg-white rounded-lg shadow overflow-x-auto">
+            <div className="card overflow-x-auto !p-0">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-gray-600">#</th>
-                    <th className="px-3 py-2 text-left text-gray-600">Nombre</th>
-                    <th className="px-3 py-2 text-left text-gray-600">Email</th>
-                    <th className="px-3 py-2 text-left text-gray-600">Teléfono</th>
-                    <th className="px-3 py-2 text-left text-gray-600">Departamento</th>
-                    <th className="px-3 py-2 text-left text-gray-600">Cursos</th>
+                <thead>
+                  <tr className="border-b border-border-light">
+                    <th className="px-3 py-2.5 text-left text-xs font-medium text-ink-muted uppercase tracking-wider">#</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-medium text-ink-muted uppercase tracking-wider">Nombre</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-medium text-ink-muted uppercase tracking-wider">Email</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-medium text-ink-muted uppercase tracking-wider">Teléfono</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-medium text-ink-muted uppercase tracking-wider">Departamento</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-medium text-ink-muted uppercase tracking-wider">Cursos</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-rule">
                   {parsedData.slice(0, 5).map((row, i) => (
-                    <tr key={i} className="hover:bg-gray-50">
-                      <td className="px-3 py-2 text-gray-400">{i + 1}</td>
-                      <td className="px-3 py-2 font-medium">{row.nombre || <span className="text-red-400">—</span>}</td>
-                      <td className="px-3 py-2">{row.email || <span className="text-red-400">—</span>}</td>
-                      <td className="px-3 py-2 text-gray-500">{row.telefono || '—'}</td>
-                      <td className="px-3 py-2 text-gray-500">{row.departamento || '—'}</td>
-                      <td className="px-3 py-2 text-gray-500">{row.cursos_asignados || '—'}</td>
+                    <tr key={i} className="hover:bg-surface-muted transition-colors">
+                      <td className="px-3 py-2.5 text-ink-slate">{i + 1}</td>
+                      <td className="px-3 py-2.5 font-medium text-ink">{row.nombre || <span className="text-error">—</span>}</td>
+                      <td className="px-3 py-2.5 text-ink">{row.email || <span className="text-error">—</span>}</td>
+                      <td className="px-3 py-2.5 text-ink-muted">{row.telefono || '—'}</td>
+                      <td className="px-3 py-2.5 text-ink-muted">{row.departamento || '—'}</td>
+                      <td className="px-3 py-2.5 text-ink-muted">{row.cursos_asignados || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               {parsedData.length > 5 && (
-                <p className="text-sm text-gray-400 text-center py-2">... y {parsedData.length - 5} filas más</p>
+                <p className="text-sm text-ink-slate text-center py-2 border-t border-rule">... y {parsedData.length - 5} filas más</p>
               )}
             </div>
 
             <button onClick={handleImport} disabled={importing}
-              className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg disabled:opacity-50 text-lg">
-              {importing ? '⏳ Importando...' : `📥 Importar ${parsedData.length} profesor${parsedData.length > 1 ? 'es' : ''}`}
+              className="btn-primary w-full mt-4 py-3 text-base justify-center">
+              {importing ? <>
+                <Loader2 className="w-5 h-5 animate-spin" /> Importando...
+              </> : <>
+                <Download className="w-5 h-5" /> Importar {parsedData.length} profesor{parsedData.length > 1 ? 'es' : ''}
+              </>}
             </button>
           </div>
         )}
@@ -195,41 +193,41 @@ export default function ImportarPage() {
         {/* Resultado */}
         {result && (
           <div className="mt-6">
-            <h3 className="font-semibold text-gray-800 mb-3">📊 Resultado de la importación</h3>
+            <h3 className="font-semibold text-ink mb-3 flex items-center gap-1.5"><BarChart3 className="w-5 h-5" /> Resultado de la importación</h3>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                 <p className="text-3xl font-bold text-green-700">{result.importados}</p>
-                <p className="text-green-600">Importados</p>
+                <p className="text-sm text-green-600 font-medium">Importados</p>
               </div>
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
                 <p className="text-3xl font-bold text-red-700">{result.errores}</p>
-                <p className="text-red-600">Errores</p>
+                <p className="text-sm text-red-600 font-medium">Errores</p>
               </div>
             </div>
 
             {result.detalle.length > 0 && (
-              <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="card overflow-x-auto !p-0">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-gray-600">Fila</th>
-                      <th className="px-3 py-2 text-left text-gray-600">Nombre</th>
-                      <th className="px-3 py-2 text-left text-gray-600">Estado</th>
-                      <th className="px-3 py-2 text-left text-gray-600">Detalle</th>
+                  <thead>
+                    <tr className="border-b border-border-light">
+                      <th className="px-3 py-2.5 text-left text-xs font-medium text-ink-muted uppercase tracking-wider">Fila</th>
+                      <th className="px-3 py-2.5 text-left text-xs font-medium text-ink-muted uppercase tracking-wider">Nombre</th>
+                      <th className="px-3 py-2.5 text-left text-xs font-medium text-ink-muted uppercase tracking-wider">Estado</th>
+                      <th className="px-3 py-2.5 text-left text-xs font-medium text-ink-muted uppercase tracking-wider">Detalle</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-rule">
                     {result.detalle.map((d, i) => (
-                      <tr key={i} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 text-gray-400">{d.fila}</td>
-                        <td className="px-3 py-2 font-medium">{d.nombre}</td>
-                        <td className="px-3 py-2">
+                      <tr key={i} className="hover:bg-surface-muted transition-colors">
+                        <td className="px-3 py-2.5 text-ink-slate">{d.fila}</td>
+                        <td className="px-3 py-2.5 font-medium text-ink">{d.nombre}</td>
+                        <td className="px-3 py-2.5">
                           {d.estado === 'ok'
-                            ? <span className="text-green-600">✅ OK</span>
-                            : <span className="text-red-600">❌ Error</span>}
+                            ? <span className="badge badge-success"><CheckCircle2 className="w-3 h-3" /> OK</span>
+                            : <span className="badge badge-error"><XCircle className="w-3 h-3" /> Error</span>}
                         </td>
-                        <td className="px-3 py-2 text-gray-500">{d.mensaje || '—'}</td>
+                        <td className="px-3 py-2.5 text-ink-muted">{d.mensaje || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -238,10 +236,10 @@ export default function ImportarPage() {
             )}
 
             <div className="flex gap-3 mt-4">
-              <Link href="/profesores" className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+              <Link href="/profesores" className="btn-primary flex-1 justify-center text-center">
                 Ver Profesores
               </Link>
-              <button onClick={reset} className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg">
+              <button onClick={reset} className="btn-secondary flex-1 justify-center">
                 Importar otro archivo
               </button>
             </div>

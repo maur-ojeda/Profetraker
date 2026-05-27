@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabase'
 // DELETE /api/salidas/[id]
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     const { data: salida } = await supabase
       .from('salidas_pedagogicas')

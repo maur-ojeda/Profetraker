@@ -4,10 +4,10 @@ import { supabase } from '@/lib/supabase'
 // DELETE /api/reuniones/[id]
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     const { data: reunion } = await supabase
       .from('reuniones')
@@ -34,10 +34,10 @@ export async function DELETE(
 // PATCH /api/reuniones/[id] - Actualizar reunión (acuerdos, acta, estado)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
     const allowedFields = ['titulo', 'tipo', 'fecha', 'hora_inicio', 'hora_fin', 'lugar', 'link_virtual', 'participantes', 'responsable_id', 'temas_a_tratar', 'acuerdos', 'acta', 'estado']
