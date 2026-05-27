@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import dynamic from 'next/dynamic'
-
-const ClarityAnalytics = dynamic(() => import('@/components/ClarityAnalytics'), { ssr: false })
-const PWARegister = dynamic(() => import('@/components/PWARegister'), { ssr: false })
+import ClientOnlyScripts from '@/components/ClientOnlyScripts'
 
 const inter = Inter({
   variable: "--font-inter",
@@ -49,8 +46,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-surface text-ink font-sans">
         {children}
-        <ClarityAnalytics />
-        <PWARegister />
+        <ClientOnlyScripts />
       </body>
     </html>
   );
