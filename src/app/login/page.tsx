@@ -40,14 +40,14 @@ export default function LoginPage() {
     setError(null)
     
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: 'admin@colegio.edu',
+      const { data, error: signInError } = await       supabase.auth.signInWithPassword({
+        email: 'admin@colegio.cl',
         password: 'password123',
       })
 
       if (signInError && signInError.message.includes('Invalid login credentials')) {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: 'admin@colegio.edu',
+          email: 'admin@colegio.cl',
           password: 'password123',
           options: {
             data: {
@@ -61,8 +61,8 @@ export default function LoginPage() {
           throw signUpError
         }
 
-        const { data: signInData2, error: signInError2 } = await supabase.auth.signInWithPassword({
-          email: 'admin@colegio.edu',
+          const { data: signInData2, error: signInError2 } = await supabase.auth.signInWithPassword({
+          email: 'admin@colegio.cl',
           password: 'password123',
         })
 
