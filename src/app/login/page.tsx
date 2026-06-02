@@ -108,7 +108,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="input"
-              placeholder="admin@colegio.edu"
+               placeholder="admin@colegio.cl"
             />
           </div>
           
@@ -181,7 +181,7 @@ export default function LoginPage() {
             onClick={handleDevLogin}
             className="btn-secondary text-sm w-full justify-center"
           >
-            Ingresar como admin (dev: admin@colegio.edu / password123)
+            Ingresar como admin (dev: admin@colegio.cl / password123)
           </button>
           
           <p className="mt-3 text-xs text-ink-slate text-center">
