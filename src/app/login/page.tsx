@@ -175,19 +175,21 @@ export default function LoginPage() {
           Continuar con Google
         </button>
 
-        <div className="mt-6 pt-4 border-t border-border-light">
-          <p className="text-xs font-medium text-ink-muted mb-3">Opciones de desarrollo</p>
-          <button
-            onClick={handleDevLogin}
-            className="btn-secondary text-sm w-full justify-center"
-          >
-            Ingresar como admin (dev: admin@colegio.cl / password123)
-          </button>
-          
-          <p className="mt-3 text-xs text-ink-slate text-center">
-            Credenciales de desarrollo: se crea el usuario si no existe
-          </p>
-        </div>
+        {process.env.NEXT_PUBLIC_DEV_MODE === 'true' && (
+          <div className="mt-6 pt-4 border-t border-border-light">
+            <p className="text-xs font-medium text-ink-muted mb-3">Opciones de desarrollo</p>
+            <button
+              onClick={handleDevLogin}
+              className="btn-secondary text-sm w-full justify-center"
+            >
+              Ingresar como admin (dev: admin@colegio.cl / password123)
+            </button>
+            
+            <p className="mt-3 text-xs text-ink-slate text-center">
+              Credenciales de desarrollo: se crea el usuario si no existe
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )
