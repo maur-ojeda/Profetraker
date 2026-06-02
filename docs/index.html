@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROFE TRACKER — Gestión de Asistencia Docente</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white: #ffffff;
+      --bg: #f8f9fc;
+      --surface: #ffffff;
+      --ink: #0f172a;
+      --ink-muted: #475569;
+      --ink-slate: #64748b;
+      --border: #e2e8f0;
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #eef2ff;
+      --accent: #22d3ee;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --radius: 12px;
+      --radius-lg: 20px;
+      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 6px rgba(0,0,0,.05), 0 10px 15px rgba(0,0,0,.08);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,.08);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%);
+      color: var(--white);
+      padding: 80px 0 72px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(99,102,241,.25) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(34,211,238,.15) 0%, transparent 50%);
+    }
+    .hero .container { position: relative; z-index: 1; }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(99,102,241,.2);
+      border: 1px solid rgba(99,102,241,.3);
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #a5b4fc;
+      margin-bottom: 24px;
+    }
+    .hero-badge span { width: 6px; height: 6px; border-radius: 50%; background: #22d3ee; display: inline-block; }
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .hero h1 span { background: linear-gradient(135deg, #818cf8, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p {
+      font-size: clamp(1.05rem, 2vw, 1.2rem);
+      color: #94a3b8;
+      max-width: 640px;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 100px;
+      font-weight: 600;
+      font-size: 15px;
+      text-decoration: none;
+      transition: all .2s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: var(--white);
+      box-shadow: 0 4px 14px rgba(99,102,241,.35);
+    }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,.4); }
+    .btn-outline {
+      background: transparent;
+      color: var(--white);
+      border: 1.5px solid rgba(255,255,255,.2);
+    }
+    .btn-outline:hover { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.05); }
+
+    /* Sections */
+    section { padding: 72px 0; }
+    .section-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .section-desc {
+      color: var(--ink-muted);
+      font-size: 1.05rem;
+      max-width: 580px;
+      margin-bottom: 40px;
+    }
+
+    /* Problem */
+    .problem {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .problem-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+    .problem-list { list-style: none; display: flex; flex-direction: column; gap: 16px; }
+    .problem-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px 20px;
+      background: var(--bg);
+      border-radius: var(--radius);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .problem-list li .icon { flex-shrink: 0; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .problem-list li.red .icon { background: #fef2f2; color: #ef4444; }
+    .problem-list li.amber .icon { background: #fffbeb; color: #f59e0b; }
+    .problem-list li.blue .icon { background: #eef2ff; color: #6366f1; }
+
+    /* Modules */
+    .modules { background: var(--bg); }
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .module-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: all .25s;
+      cursor: default;
+    }
+    .module-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--primary); }
+    .module-card .emoji { font-size: 28px; margin-bottom: 12px; display: block; }
+    .module-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .module-card p { font-size: 13px; color: var(--ink-slate); line-height: 1.5; }
+    .module-card .status {
+      display: inline-block;
+      margin-top: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+    .status-done { background: #ecfdf5; color: #059669; }
+    .status-plan { background: #eef2ff; color: #4f46e5; }
+    .status-next { background: #fef3c7; color: #d97706; }
+
+    /* Stack */
+    .stack { background: var(--surface); border-top: 1px solid var(--border); }
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .stack-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      background: var(--bg);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all .2s;
+    }
+    .stack-item:hover { background: var(--primary-light); }
+
+    /* Features */
+    .features { background: var(--bg); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+    .feature-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .feature-card p { font-size: 14px; color: var(--ink-slate); line-height: 1.6; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      text-align: center;
+      color: var(--ink-slate);
+      font-size: 14px;
+    }
+    footer strong { color: var(--ink); }
+
+    @media (max-width: 768px) {
+      .problem-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .hero { padding: 56px 0 48px; }
+      section { padding: 48px 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="container">
+    <div class="hero-badge"><span></span> Proyecto activo — MVP desplegado</div>
+    <h1>PROFE <span>TRACKER</span></h1>
+    <p>
+      Sistema integral para gestionar la asistencia docente: licencias, permisos,
+      reemplazos, salidas pedagógicas, reuniones y hitos del PME — todo en un solo lugar.
+    </p>
+    <div class="hero-actions">
+      <a href="https://profe-tracker-beta.vercel.app" class="btn btn-primary" target="_blank" rel="noopener">
+        Ver App →
+      </a>
+      <a href="https://github.com/maur-ojeda/Profetraker" class="btn btn-outline" target="_blank" rel="noopener">
+        GitHub
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- Problem -->
+<section class="problem">
+  <div class="container">
+    <div class="problem-grid">
+      <div>
+        <span class="section-tag">El problema</span>
+        <h2 class="section-title">Del Excel cooperativo al control centralizado</h2>
+        <p class="section-desc" style="max-width:100%">
+          Las escuelas gestionan la asistencia docente con planillas Excel compartidas:
+          información dispersa, errores humanos, sin alertas en tiempo real.
+        </p>
+      </div>
+      <ul class="problem-list">
+        <li class="red">
+          <span class="icon">✕</span>
+          <span><strong>Información dispersa</strong> — licencias en un Excel, permisos en otro, salidas en un tercero</span>
+        </li>
+        <li class="amber">
+          <span class="icon">⚠</span>
+          <span><strong>Sin alertas</strong> — nadie se entera de una ausencia sin aviso hasta que empieza la clase</span>
+        </li>
+        <li class="blue">
+          <span class="icon">→</span>
+          <span><strong>PROFE TRACKER</strong> unifica todo: calendario, datos, alertas y reemplazos en tiempo real</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Modules -->
+<section class="modules">
+  <div class="container">
+    <span class="section-tag">Módulos</span>
+    <h2 class="section-title">Todo lo que necesitás para gestionar tu plantel</h2>
+    <p class="section-desc">Cada módulo está diseñado para que el equipo administrativo pueda operar desde el celular, en cualquier lugar del colegio.</p>
+    <div class="modules-grid">
+      <div class="module-card">
+        <span class="emoji">👨‍🏫</span>
+        <h3>Profesores</h3>
+        <p>ABM completo + importación CSV con drag & drop y preview</p>
+        <span class="status status-done">Completado</span>
+      </div>
+      <div class="module-card">
+        <span class="emoji">🗓️</span>
+        <h3>Calendario Semanal</h3>
+        <p>Vista 60/40 con sidebar, filtros por tipo de evento, integración total</p>
+        <span class="status status-done">Completado</span>
+      </div>
+      <div class="module-card">
+        <span class="emoji">🏥</span>
+        <h3>Licencias Médicas</h3>
+        <p>Registro desde/hasta, cálculo automático de días, alertas de pago</p>
+        <span class="status status-done">Completado</span>
+      </div>
+      <div class="module-card">
+        <span class="emoji">🪪</span>
+        <h3>Permisos Admin</h3>
+        <p>Día completo o medio día (AM/PM), motivo y autorización</p>
+        <span class="status status-done">Completado</span>
+      </div>
+      <div class="module-card">
+        <span class="emoji">📵</span>
+        <h3>Ausencias</h3>
+        <p>Con aviso / sin aviso + justificación y alerta inmediata</p>
+        <span class="status status-done">Completado</span>
+      </div>
+      <div class="module-card">
+        <span class="emoji">🚌</span>
+        <h3>Salidas Pedagógicas</h3>
+        <p>Acompañantes, horarios, cobertura de horas descubiertas</p>
+        <span class="status status-done">Completado</span>
+      </div>
+      <div class="module-card">
+        <span class="emoji">🤝</span>
+        <h3>Reuniones</h3>
+        <p>Registro con acuerdos, actas y seguimiento de compromisos</p>
+        <span class="status status-done">Completado</span>
+      </div>
+      <div class="module-card">
+        <span class="emoji">🏫</span>
+        <h3>Consejo de Profesores</h3>
+        <p>Convocatoria, responsables, temas, acuerdos y compromisos</p>
+        <span class="status status-done">Completado</span>
+      </div>
+      <div class="module-card">
+        <span class="emoji">🎉</span>
+        <h3>Hitos PME</h3>
+        <p>Días especiales, fechas del PME, evaluaciones y simulacros</p>
+        <span class="status status-done">Completado</span>
+      </div>
+      <div class="module-card">
+        <span class="emoji">🤖</span>
+        <h3>Chatbot IA</h3>
+        <p>Asistente con Gemini que responde consultas sobre los datos del sistema</p>
+        <span class="status status-done">Completado</span>
+      </div>
+      <div class="module-card">
+        <span class="emoji">📊</span>
+        <h3>Analytics</h3>
+        <p>Dashboard de KPIs, reportes de ausentismo, exportación PDF/Excel</p>
+        <span class="status status-plan">Planificado</span>
+      </div>
+      <div class="module-card">
+        <span class="emoji">👀</span>
+        <h3>Observaciones de Aula</h3>
+        <p>Rúbrica, acompañamiento docente y plan de seguimiento</p>
+        <span class="status status-next">Próximo</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features">
+  <div class="container">
+    <span class="section-tag">Capacidades clave</span>
+    <h2 class="section-title">Más que un calendario</h2>
+    <p class="section-desc">PROFE TRACKER no solo registra — anticipa, alerta y coordina.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <h3>🔔 Alertas Inteligentes</h3>
+        <p>Licencias sin ingreso al sistema de pagos, ausencias sin aviso, clases sin reemplazo, hitos del PME próximos a vencer — el sistema te avisa antes de que sea un problema.</p>
+      </div>
+      <div class="feature-card">
+        <h3>🔐 Autenticación Corporativa</h3>
+        <p>Inicio de sesión con Google Workspace (OAuth 2.0). Roles: Administrador, Inspector, Profesor, Director. Permisos por rol.</p>
+      </div>
+      <div class="feature-card">
+        <h3>📱 Mobile-First</h3>
+        <p>Diseñada para usarse desde el celular en cualquier lugar del colegio. PWA instalable con notificaciones push (próximamente).</p>
+      </div>
+      <div class="feature-card">
+        <h3>🤝 Colaborativa</h3>
+        <p>Todos los miembros del equipo pueden editar, agregar y mantener registros. Sin barreras de solo lectura — información viva y siempre actualizada.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stack -->
+<section class="stack">
+  <div class="container">
+    <span class="section-tag">Stack Tecnológico</span>
+    <h2 class="section-title">Tecnologías con las que está construido</h2>
+    <p class="section-desc">Next.js + Supabase + Vercel — moderno, escalable y en tiempo real.</p>
+    <div class="stack-grid">
+      <div class="stack-item">▲ Next.js 16</div>
+      <div class="stack-item">⚛️ React 19</div>
+      <div class="stack-item">🟦 TypeScript</div>
+      <div class="stack-item">🎨 Tailwind CSS v4</div>
+      <div class="stack-item">🗄️ Supabase</div>
+      <div class="stack-item">🔐 Google OAuth</div>
+      <div class="stack-item">🧠 Gemini AI</div>
+      <div class="stack-item">📦 Vercel</div>
+      <div class="stack-item">🎬 Anime.js</div>
+      <div class="stack-item">💎 Lucide Icons</div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <p><strong>PROFE TRACKER</strong> — Sistema de Gestión de Asistencia Docente</p>
+    <p style="margin-top: 4px;">Proyecto creado el 10 de mayo de 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>
