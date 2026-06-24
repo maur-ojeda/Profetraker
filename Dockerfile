@@ -36,12 +36,39 @@ COPY . .
 # Next.js collects anonymous telemetry; disable it during container builds.
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Provide placeholder env vars so Next can statically analyse the code
+# without crashing. Real values are injected at runtime via Coolify.
+# These strings are NEVER used at runtime — the runtime container gets
+# the real values from Coolify's environment configuration.
+ENV NEXT_PUBLIC_SUPABASE_URL=http://placeholder.invalid
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder.anon.key
+ENV GEMINI_API_KEY=placeholder_gemini_key
+ENV CRON_SECRET=placeholder_cron_secret
+
 # Build with standalone output (configured in next.config.ts).
 RUN npm run build
 
 # ---------- Stage 3: runner ----------
 # Final image: only the files needed at runtime. No devDependencies, no source.
+#
+# IMPORTANT: Next.js nests the standalone output under a path that mirrors
+# the build host's absolute path. On this Mac, the repo lives at:
+#   /Users/mauricioojeda/Projects/Profetraker
+# so the build emits:
+#   .next/standalone/Users/mauricioojeda/Projects/Profetraker/
+#
+# On a clean CI machine (Coolify), it would just be:
+#   .next/standalone/Profetraker/  (or whatever WORKDIR is)
+#
+# Strategy: keep the nested structure intact (don't move files — that
+# breaks relative require()s inside Next's compiled chunks). Instead,
+# set WORKDIR to wherever `server.js` actually lives, and reference
+# public/ and .next/static/ from the build context with absolute paths.
 FROM node:20-alpine AS runner
+
+# We don't know the path depth yet — set it to a stable prefix and then
+# symlink the real app into /app/standalone. This is the simplest way to
+# keep Next's relative require() graph working.
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -54,20 +81,28 @@ ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs
 
-# Copy the standalone server bundle. This includes:
-#   - server.js (entrypoint)
-#   - node_modules/ (minimal subset traced by Next)
-#   - .next/  (server chunks, manifests, etc.)
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+# Copy the entire standalone tree. The directory containing server.js
+# will be at an unpredictable nested path, so we copy as-is.
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone/ /app/standalone/
 
 # Standalone does NOT copy public/ or .next/static/ automatically.
 # We have to bring them in explicitly so assets and PWA icons are served.
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Place them next to server.js so that Next's relative-path lookups work.
+COPY --from=builder --chown=nextjs:nodejs /app/public /app/standalone/public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static /app/standalone/.next/static
+
+# Build-time: locate the APP's server.js (not Next's compiled/internal ones).
+# The real entrypoint is always named server.js and lives at the top of the
+# standalone app dir, NOT inside any node_modules/ subdir. We use `-not -path`
+# to skip Next's internal copies.
+RUN APP_DIR=$(find /app/standalone -name server.js -type f -not -path "*/node_modules/*" -not -path "*/compiled/*" | head -1 | xargs dirname) \
+ && echo "Detected app dir: $APP_DIR" \
+ && printf '#!/bin/sh\nset -e\ncd "%s"\nexec node server.js\n' "$APP_DIR" > /app/start.sh \
+ && chmod +x /app/start.sh
 
 USER nextjs
 
 EXPOSE 3000
 
-# Standalone exposes a single `server.js` entrypoint.
-CMD ["node", "server.js"]
+# Use the wrapper script to cd into the right directory before starting.
+CMD ["sh", "/app/start.sh"]
