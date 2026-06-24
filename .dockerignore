@@ -1,0 +1,50 @@
+# Files / dirs that bloat the image or are not needed in the build context.
+# Coolify uses BuildKit which respects this file.
+
+# Git & VCS
+.git
+.gitignore
+.gitattributes
+
+# Editor / IDE
+.vscode
+.idea
+.DS_Store
+
+# Local env files (NEVER bake secrets into the image)
+.env
+.env.local
+.env.*.local
+.env.coolify.example
+
+# CI / Coolify / Docker meta
+.coolify
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Next.js build artefacts (rebuilt inside the image)
+.next
+.next/
+out
+out/
+
+# Node
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Reviews & misc
+_reviews
+docs
+design.md
+review-*.png
+profesores_ejemplo.csv
+
+# Vercel
+.vercel
