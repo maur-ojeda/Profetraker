@@ -6,6 +6,18 @@
 
 ---
 
+## ✅ Estado del setup (verificado en local)
+
+Antes de hacer push, este setup fue probado localmente con Docker:
+
+- ✅ `npm run build` con `output: 'standalone'` genera `.next/standalone/` correctamente
+- ✅ La imagen Docker se construye sin errores (~712 MB con todas las deps)
+- ✅ El container arranca, Next.js 16.2.6 bootea en 0ms
+- ✅ Las rutas `/`, `/login`, `/dashboard`, `/profesores`, `/calendario` devuelven HTTP 200
+- ✅ El endpoint `/api/cron/keep-alive` autentica con `Bearer <CRON_SECRET>` (401 sin secret, 500 con secret cuando Supabase no responde — comportamiento esperado)
+
+---
+
 ## 📋 Requisitos
 
 | Componente | Mínimo | Recomendado |
@@ -45,6 +57,19 @@ Coolify (192.168.1.96:8000)
 > ⚠️ **Colisión de puertos:** el Studio de Supabase usa 3000 y la app Next.js
 > también usa 3000. Coolify te deja mapear puertos distintos o poner cada
 > proyecto detrás de un dominio diferente. Ver [Troubleshooting](#colisión-de-puerto-3000).
+
+---
+
+## 🚀 Quick start (TL;DR)
+
+Si ya tenés Coolify corriendo y querés ir directo:
+
+1. **Stack Supabase:** en Coolify, nuevo Docker Compose → pegar `deploy/docker-compose.coolify.yml` → setear las variables de `.env.coolify.example` (con los secrets generados con `openssl rand -hex 32`).
+2. **Migraciones:** entrar a Studio (host port 3000) y correr el SQL de `supabase/migrations/20260527170000_init_schema.sql`.
+3. **App:** nuevo Application (Dockerfile) → apuntar a la rama `feat/coolify-self-host` → setear `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `GEMINI_API_KEY`, `CRON_SECRET`.
+4. **Probar:** abrir `http://192.168.1.96:3000` y loguearse.
+
+Para más detalle, seguí leyendo.
 
 ---
 
@@ -341,3 +366,60 @@ proyecto-nuevo/
 - [Coolify docs](https://coolify.io/docs)
 - [Next.js Standalone output](https://nextjs.org/docs/app/api-reference/config/next-config-js/output)
 - [DuckDNS](https://www.duckdns.org/)
+
+---
+
+## 🔬 Notas técnicas: por qué el Dockerfile se ve así
+
+Esto es lo que aprendí en el proceso, por si tenés que adaptarlo a otro
+proyecto Next.js 16:
+
+### 1. El output standalone está anidado bajo el path del repo
+
+Next.js anida el output de standalone bajo la **ruta absoluta del repo en
+el host de build**. En este Mac (`/Users/mauricioojeda/Projects/Profetraker`),
+el bundle queda en:
+
+```
+.next/standalone/Users/mauricioojeda/Projects/Profetraker/server.js
+```
+
+En un CI limpio (Coolify) sería:
+
+```
+.next/standalone/Profetraker/server.js
+```
+
+**No hardcodear el path.** El Dockerfile usa `find` para localizar
+`server.js` y un wrapper shell script para hacer `cd` antes de ejecutar.
+El `-not -path '*/node_modules/*' -not -path '*/compiled/*'` es crítico:
+sin él, el `find` agarra primero los `server.js` internos de Next
+(`next/dist/compiled/...`) que NO son el entrypoint.
+
+### 2. La imagen pesa ~712 MB, no ~100 MB
+
+El `outputFileTracingIncludes` original (con un whitelist de `@supabase`,
+`@google`, etc.) dejaba la imagen en 265 MB pero crasheaba en runtime con
+`Cannot find module 'react'`. Next 16 / Turbopack es menos preciso que
+Next 14 / webpack al hacer el trace de dependencias.
+
+**Decisión:** incluir todo `node_modules/**` y `.next/server/**`. La
+imagen crece a ~712 MB, pero funciona. Si en el futuro el size es
+problema, se puede:
+
+- Auditar con `docker history` qué carpeta es la más pesada
+- Reemplazar dependencias pesadas (¿`lucide-react` de 1.14.0 es realmente
+  la versión correcta? Probablemente NO, es un typo en `package.json`)
+- Multi-stage más agresivo: copiar solo `node_modules/{react,react-dom,...}`
+
+### 3. Placeholders en build, valores reales en runtime
+
+El Dockerfile define las env vars como placeholders durante `npm run build`
+para que Next pueda analizar estáticamente las API routes que usan
+`process.env.NEXT_PUBLIC_SUPABASE_URL` en import-time. Sin esto, la build
+falla con "Failed to collect page data for /api/calendario".
+
+Los valores **reales** se inyectan en runtime desde Coolify y reemplazan
+los placeholders, así que no hay riesgo de leak.
+
+---
