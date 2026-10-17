@@ -22,7 +22,7 @@ Antes de hacer push, este setup fue probado localmente con Docker:
 
 | Componente | Mínimo | Recomendado |
 |------------|--------|-------------|
-| **Coolify** | v4.x | v4.x (la que tenés en `192.168.1.96:8000`) |
+| **Coolify** | v4.x | v4.x (la que tenés en `192.168.1.81:8000`) |
 | **RAM servidor** | 4 GB | 8 GB+ (Supabase + Next + DB) |
 | **Disco** | 20 GB | 50 GB+ (DB + Storage + imágenes) |
 | **CPU** | 2 vCPU | 4 vCPU |
@@ -38,7 +38,7 @@ Antes de hacer push, este setup fue probado localmente con Docker:
 ## 🏗 Arquitectura
 
 ```
-Coolify (192.168.1.96:8000)
+Coolify (192.168.1.81:8000)
 │
 ├── 📦 Proyecto 1: "Profe Tracker — Supabase"   (docker-compose)
 │   ├── Postgres 17   (DB)         → host port 5432
@@ -67,7 +67,7 @@ Si ya tenés Coolify corriendo y querés ir directo:
 1. **Stack Supabase:** en Coolify, nuevo Docker Compose → pegar `deploy/docker-compose.coolify.yml` → setear las variables de `.env.coolify.example` (con los secrets generados con `openssl rand -hex 32`).
 2. **Migraciones:** entrar a Studio (host port 3000) y correr el SQL de `supabase/migrations/20260527170000_init_schema.sql`.
 3. **App:** nuevo Application (Dockerfile) → apuntar a la rama `feat/coolify-self-host` → setear `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `GEMINI_API_KEY`, `CRON_SECRET`.
-4. **Probar:** abrir `http://192.168.1.96:3000` y loguearse.
+4. **Probar:** abrir `http://192.168.1.81:3000` y loguearse.
 
 Para más detalle, seguí leyendo.
 
@@ -149,7 +149,7 @@ Pegá ambos valores en `.env.coolify`.
 
 ### 3. Deploy del stack Supabase en Coolify
 
-1. Abrí `http://192.168.1.96:8000` y logueate.
+1. Abrí `http://192.168.1.81:8000` y logueate.
 2. **Projects → + Add → New Resource → Docker Compose**.
 3. Como origen, elegí **"Docker Compose"** y pegá el contenido de
    `deploy/docker-compose.coolify.yml` (o apuntá el repo a esa ruta).
@@ -197,7 +197,7 @@ docker exec -i profe-tracker-db psql \
    - **Port:** 3000
 4. **Environment Variables** (estas son las que ve la app, no Supabase):
    ```
-   NEXT_PUBLIC_SUPABASE_URL=http://192.168.1.96:8000
+   NEXT_PUBLIC_SUPABASE_URL=http://192.168.1.81:8000
    NEXT_PUBLIC_SUPABASE_ANON_KEY=<el mismo ANON_KEY que generaste>
    GEMINI_API_KEY=<tu key de Google AI Studio>
    NEXT_PUBLIC_DEV_MODE=false
@@ -205,12 +205,12 @@ docker exec -i profe-tracker-db psql \
    PORT=3000
    ```
 5. **Deploy**. La primera build tarda ~3-5 minutos.
-6. La app queda accesible en `http://192.168.1.96:3000` (o el puerto
+6. La app queda accesible en `http://192.168.1.81:3000` (o el puerto
    que Coolify le asigne).
 
 ### 6. Probar el flujo completo
 
-1. Abrí `http://192.168.1.96:3000` → debería cargar el login.
+1. Abrí `http://192.168.1.81:3000` → debería cargar el login.
 2. Logueate con `admin@colegio.cl` / `password123` (si dejaste
    `NEXT_PUBLIC_DEV_MODE=true`) o creá un usuario desde Studio.
 3. Andá a **Profesores** y cargá uno.
@@ -221,7 +221,7 @@ docker exec -i profe-tracker-db psql \
 
 ## 🔐 Configurar HTTPS con dominio real (opcional)
 
-> Saltá esta sección si por ahora solo querés probar en `192.168.1.96`.
+> Saltá esta sección si por ahora solo querés probar en `192.168.1.81`.
 
 ### 6.1. Comprar dominio y apuntar DNS
 
@@ -251,8 +251,8 @@ Coolify necesita los puertos 80 y 443 abiertos para emitir el cert:
 
 | Puerto externo | Puerto interno | IP destino |
 |----------------|----------------|------------|
-| 80  | 80  | 192.168.1.96 |
-| 443 | 443 | 192.168.1.96 |
+| 80  | 80  | 192.168.1.81 |
+| 443 | 443 | 192.168.1.81 |
 
 ### 6.4. Configurar dominio en Coolify
 
@@ -292,8 +292,8 @@ Síntoma: la app carga el login pero al loguearte da error de red.
    ```
 2. Verificá que `NEXT_PUBLIC_SUPABASE_URL` en la app sea **accesible
    desde el navegador**, no solo desde la red Docker. Si la app está en
-   `http://192.168.1.96:3000`, Supabase tiene que estar en
-   `http://192.168.1.96:8000` (puerto host de Kong).
+   `http://192.168.1.81:3000`, Supabase tiene que estar en
+   `http://192.168.1.81:8000` (puerto host de Kong).
 3. Logs de la app en Coolify → "Logs" → buscá errores de Supabase.
 
 ### Error "Invalid API key" en login

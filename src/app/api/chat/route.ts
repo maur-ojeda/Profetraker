@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { geminiModel } from '@/lib/gemini'
+import { nvidia, NVIDIA_MODEL } from '@/lib/gemini'
 import { SYSTEM_PROMPT } from '@/lib/chat-prompt'
 import { FUNCTIONS } from '@/lib/chat-functions'
 import { supabase } from '@/lib/supabase'
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,42 +13,56 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Mensaje vacío' }, { status: 400 })
     }
 
-    // Construir historial del chat para Gemini
-    const contents = (history || []).map((m: any) => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.content }],
-    }))
-    contents.push({ role: 'user', parts: [{ text: message }] })
+    const messages: ChatCompletionMessageParam[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...(history || []).map((m: any) => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.content,
+      })),
+      { role: 'user', content: message },
+    ]
 
-    // Primera llamada a Gemini con funciones habilitadas
-    const chat = geminiModel.startChat({
-      history: [
-        { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
-        { role: 'model', parts: [{ text: 'Entendido. Soy el asistente de Profe Tracker. Solo responderé sobre el calendario y eventos escolares.' }] },
-        ...contents.slice(0, -1),
-      ],
-      tools: [{ functionDeclarations: FUNCTIONS }],
+    const response = await nvidia.chat.completions.create({
+      model: NVIDIA_MODEL,
+      messages,
+      tools: FUNCTIONS,
+      tool_choice: 'auto',
+      temperature: 0.1,
+      max_tokens: 1024,
     })
 
-    const result = await chat.sendMessage(message)
-    const response = result.response
-    const functionCalls = response.functionCalls()
+    const choice = response.choices[0]
+    const toolCalls = choice.message.tool_calls
 
-    // Si Gemini llamó funciones, ejecutarlas y responder
-    if (functionCalls && functionCalls.length > 0) {
-      const fnResults = await Promise.all(
-        functionCalls.map(async (fc) => {
-          const result = await executeFunction(fc.name, fc.args)
-          return { functionResponse: { name: fc.name, response: result } }
+    if (toolCalls && toolCalls.length > 0) {
+      const toolResults = await Promise.all(
+        toolCalls.map(async (tc) => {
+          const fn = (tc as any).function
+          const args = JSON.parse(fn.arguments)
+          const result = await executeFunction(fn.name, args)
+          return {
+            role: 'tool' as const,
+            tool_call_id: tc.id,
+            content: JSON.stringify(result),
+          }
         })
       )
 
-      const finalResult = await chat.sendMessage(fnResults)
-      return NextResponse.json({ reply: finalResult.response.text() })
+      const finalResponse = await nvidia.chat.completions.create({
+        model: NVIDIA_MODEL,
+        messages: [
+          ...messages,
+          choice.message,
+          ...toolResults,
+        ],
+        temperature: 0.1,
+        max_tokens: 1024,
+      })
+
+      return NextResponse.json({ reply: finalResponse.choices[0].message.content })
     }
 
-    // Respuesta directa (consulta sin función)
-    return NextResponse.json({ reply: response.text() })
+    return NextResponse.json({ reply: choice.message.content })
   } catch (err: any) {
     console.error('Chat API error:', err)
     return NextResponse.json({ error: err.message || 'Error al procesar la consulta' }, { status: 500 })

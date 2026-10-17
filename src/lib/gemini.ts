@@ -1,12 +1,8 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 
-const apiKey = process.env.GEMINI_API_KEY!
-export const gemini = new GoogleGenerativeAI(apiKey)
-
-export const geminiModel = gemini.getGenerativeModel({
-  model: 'gemini-flash-latest',
-  generationConfig: {
-    temperature: 0.1,
-    maxOutputTokens: 1024,
-  },
+export const nvidia = new OpenAI({
+  baseURL: 'https://integrate.api.nvidia.com/v1',
+  apiKey: process.env.NVIDIA_API_KEY!,
 })
+
+export const NVIDIA_MODEL = 'meta/muse-glimmer-30b'
