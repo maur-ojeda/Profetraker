@@ -7,7 +7,7 @@
 # Run:     docker run -p 3000:3000 \
 #            -e NEXT_PUBLIC_SUPABASE_URL=... \
 #            -e NEXT_PUBLIC_SUPABASE_ANON_KEY=... \
-#            -e GEMINI_API_KEY=... \
+#            -e NVIDIA_API_KEY=... \
 #            profe-tracker
 # =============================================================================
 
@@ -36,14 +36,19 @@ COPY . .
 # Next.js collects anonymous telemetry; disable it during container builds.
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Provide placeholder env vars so Next can statically analyse the code
-# without crashing. Real values are injected at runtime via Coolify.
-# These strings are NEVER used at runtime — the runtime container gets
-# the real values from Coolify's environment configuration.
-ENV NEXT_PUBLIC_SUPABASE_URL=http://placeholder.invalid
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder.anon.key
-ENV GEMINI_API_KEY=placeholder_gemini_key
-ENV CRON_SECRET=placeholder_cron_secret
+# NEXT_PUBLIC_* vars are baked into the JS bundle at build time.
+# Coolify passes them as Docker build args (is_buildtime=true).
+# Fallback placeholders keep the build working if no arg is supplied.
+ARG NEXT_PUBLIC_SUPABASE_URL=http://placeholder.invalid
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder.anon.key
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# Server-side only — injected at runtime, not baked in.
+ARG NVIDIA_API_KEY=placeholder_nvidia_key
+ARG CRON_SECRET=placeholder_cron_secret
+ENV NVIDIA_API_KEY=$NVIDIA_API_KEY
+ENV CRON_SECRET=$CRON_SECRET
 
 # Build with standalone output (configured in next.config.ts).
 RUN npm run build
