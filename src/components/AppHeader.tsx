@@ -18,7 +18,11 @@ import {
   Menu,
   X,
   ChevronUp,
+  HelpCircle,
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
+
+const OnboardingTour = dynamic(() => import('@/components/OnboardingTour'), { ssr: false })
 
 // ─── Navigation modules ──────────────────────────────────────────────
 
@@ -46,6 +50,7 @@ export default function AppHeader() {
   const [loading, setLoading] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const [runTour, setRunTour] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -114,12 +119,19 @@ export default function AppHeader() {
             ))}
           </nav>
 
-          {/* Desktop: avatar + email + logout */}
+          {/* Desktop: avatar + email + tour + logout */}
           <div className="hidden sm:flex items-center gap-4">
             <div className="flex items-center gap-2">
               <UserAvatar name={user?.user_metadata?.name} email={user?.email} size="sm" />
               <span className="text-sm text-ink-muted">{user?.email}</span>
             </div>
+            <button
+              onClick={() => setRunTour(true)}
+              title="Tour de la app"
+              className="p-1.5 rounded-lg text-ink-muted hover:bg-surface-muted hover:text-ink transition-colors"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </button>
             <button onClick={handleLogout} className="btn-secondary text-sm">
               <LogOut className="w-4 h-4" /> Cerrar sesión
             </button>
@@ -210,6 +222,9 @@ export default function AppHeader() {
           </div>
         </div>
       )}
+
+      {/* Onboarding tour — auto on first visit, manual via ? button */}
+      <OnboardingTour forceStart={runTour} onFinish={() => setRunTour(false)} />
 
       {/* Scroll to top */}
       {showScrollTop && (
